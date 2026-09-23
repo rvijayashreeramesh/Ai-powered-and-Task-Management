@@ -34,6 +34,23 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
     @model_validator(mode="after")
+    def resolve_mongo_url(self):
+        # Fallback to aliases if mongodb_url is default or empty
+        if not self.mongodb_url or self.mongodb_url == "mongodb://localhost:27017":
+            alias = (
+                os.getenv("MONGODB_URL")
+                or os.getenv("MONGODB_URI")
+                or os.getenv("DATABASE_URL")
+                or os.getenv("MONGO_URL")
+            )
+            if alias:
+                self.mongodb_url = alias
+        
+        # Clean any surrounding quotes or spaces
+        self.mongodb_url = self.mongodb_url.strip().strip('"').strip("'")
+        return self
+
+    @model_validator(mode="after")
     def resolve_api_key(self):
         if not self.gemini_api_key:
             self.gemini_api_key = os.getenv("GEMINI_API_KEY") or os.getenv("AI_API_KEY") or ""
