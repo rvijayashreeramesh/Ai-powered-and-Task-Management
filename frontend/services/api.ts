@@ -1,6 +1,10 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const RAW_API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const API_URL = RAW_API_URL.replace(/\/+$/, "");
 
-export const getApiUrl = (path: string) => `${API_URL}/api/v1${path}`;
+export const getApiUrl = (path: string) => {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_URL}/api/v1${cleanPath}`;
+};
 
 export const fetchWithAuth = async (path: string, options: RequestInit = {}) => {
   const token = typeof window !== 'undefined' ? (sessionStorage.getItem('token') || localStorage.getItem('token')) : null;

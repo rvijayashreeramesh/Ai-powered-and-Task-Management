@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { fetchWithAuth } from '@/services/api';
+import { fetchWithAuth, getApiUrl } from '@/services/api';
 import { User, LoginCredentials, RegisterCredentials } from '@/types/auth';
 import { useRouter } from 'next/navigation';
 
@@ -46,16 +46,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     formData.append('username', credentials.email);
     formData.append('password', credentials.password);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const response = await fetch(`${API_URL}/api/v1/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: formData,
-    });
+    let response: Response;
+    try {
+      response = await fetch(getApiUrl('/auth/login'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData,
+      });
+    } catch (netErr: any) {
+      throw new Error(`Unable to connect to backend server (${getApiUrl('/auth/login')}). Please check your connection or ensure backend is active.`);
+    }
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Login failed');
+      let detail = 'Login failed';
+      try {
+        const error = await response.json();
+        detail = error.detail || detail;
+      } catch (_) {}
+      throw new Error(detail);
     }
 
     const data = await response.json();
@@ -66,16 +74,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const register = async (credentials: RegisterCredentials) => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-    const response = await fetch(`${API_URL}/api/v1/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials),
-    });
+    let response: Response;
+    try {
+      response = await fetch(getApiUrl('/auth/register'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(credentials),
+      });
+    } catch (netErr: any) {
+      throw new Error(`Unable to connect to backend server (${getApiUrl('/auth/register')}). Please check your connection or ensure backend is active.`);
+    }
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.detail || 'Registration failed');
+      let detail = 'Registration failed';
+      try {
+        const error = await response.json();
+        detail = error.detail || detail;
+      } catch (_) {}
+      throw new Error(detail);
     }
   };
 
