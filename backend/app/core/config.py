@@ -1,5 +1,5 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from pydantic import Field, model_validator, field_validator
+from pydantic import Field, model_validator, field_validator, AliasChoices
 from typing import List, Union
 import json
 import os
@@ -16,7 +16,10 @@ class Settings(BaseSettings):
     gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
     gemini_model: str = Field(default="gemini-3.8-flash", validation_alias="GEMINI_MODEL")
     
-    cors_origins: Union[List[str], str] = ["http://localhost:3000"]
+    cors_origins: Union[List[str], str] = Field(
+        default=["http://localhost:3000"],
+        validation_alias=AliasChoices("CORS_ORIGINS", "cors_origins")
+    )
 
     @field_validator("cors_origins", mode="after")
     @classmethod

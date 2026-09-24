@@ -36,10 +36,7 @@ async def register(user_in: UserCreate) -> Any:
 
 @router.post("/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> Any:
-
-    print("login details :", form_data.username, form_data.password)
     user_doc = await db_instance.db.users.find_one({"email": form_data.username})
-    print("user doc :", user_doc)
     if not user_doc or not verify_password(form_data.password, user_doc["hashed_password"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
